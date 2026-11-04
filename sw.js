@@ -1,5 +1,5 @@
 // Primero red (para recibir actualizaciones), si no hay conexión usa la copia guardada
-const CACHE = 'misgastos-v8';
+const CACHE = 'misgastos-v9';
 const ARCHIVOS = ['./', './index.html', './manifest.json', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

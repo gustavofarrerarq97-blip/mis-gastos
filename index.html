@@ -39,7 +39,9 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);
   font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif}
-body{padding:env(safe-area-inset-top) 0 calc(110px + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased}
+/* En el iPhone la barra de abajo debe llegar hasta el borde: lo que quede debajo se pinta del mismo color */
+html{background:var(--card)}
+body{padding:env(safe-area-inset-top) 0 calc(110px + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased;min-height:100vh;min-height:100dvh;overscroll-behavior-y:none}
 body.locked{overflow:hidden}
 button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:560px;margin:0 auto;padding:0 16px}
@@ -105,7 +107,7 @@ header h1{font-size:17px;font-weight:600;margin:0}
 .track{height:8px;background:var(--chip);border-radius:6px;margin-top:6px;overflow:hidden;position:relative}
 .fill{height:100%;background:var(--accent);border-radius:6px}
 .fill.warn{background:var(--warn)} .fill.neg{background:var(--neg)}
-.meta{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.5}
+.track .marca{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.5}
 .sec-title{font-size:14px;color:var(--muted);margin:20px 4px 8px;display:flex;justify-content:space-between;align-items:center}
 .sec-title button{border:0;background:none;color:var(--accent);font-weight:600;font-size:14px;padding:0}
 .sw{width:10px;height:10px;border-radius:3px;flex:none;display:inline-block}
@@ -154,8 +156,9 @@ header h1{font-size:17px;font-weight:600;margin:0}
 .addcard{display:block;width:100%;margin-top:14px;border:1.5px dashed var(--line);background:none;border-radius:20px;padding:16px;font-weight:600;color:var(--accent)}
 
 nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;
-  background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+  background:var(--card);background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--line);padding:6px 8px max(6px, env(safe-area-inset-bottom))}
+nav.bottom::after{content:'';position:absolute;left:0;right:0;top:100%;height:120px;background:var(--card)}
 nav.bottom .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr auto 1fr 1fr;align-items:center}
 .tab{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:6px 2px;position:relative}
 .tab svg{width:22px;height:22px}
@@ -299,6 +302,13 @@ textarea{resize:none}
 .demo .r{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:28px}
 .demo .r span{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 10px;font-size:13px;opacity:0;transform:scale(.8);transition:all .3s}
 .demo .r span.v{opacity:1;transform:none}
+.plan-in{display:block;font-size:14px;color:var(--muted)}
+.plan-in input{margin-top:6px;font-size:22px;font-weight:600}
+.plan-big{font-size:17px;margin:14px 0 2px}
+.plan-big b{font-weight:700;color:var(--pos)}
+.pasos{margin:12px 0 0;padding-left:20px;font-size:15px}
+.pasos li{margin:6px 0}
+
 /* Gastos hormiga */
 .hor-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .hor-big{font-size:28px;font-weight:700;margin:2px 0}
@@ -515,10 +525,14 @@ textarea{resize:none}
       <label class="fld"><span>¿Cuánto debes hoy en total? (sin contar meses sin intereses pendientes)</span><input id="tDeuda" inputmode="decimal" autocomplete="off" placeholder="$0.00"></label>
       <label class="fld"><span>De eso, ¿cuánto te falta pagar de tu último corte? (si no sabes, déjalo vacío)</span><input id="tCorteIni" inputmode="decimal" autocomplete="off" placeholder="Igual a lo que debes"></label>
       <div class="two">
-        <label class="fld"><span>Día de corte</span><input id="tCorte" inputmode="numeric" placeholder="Ej. 15" autocomplete="off"></label>
-        <label class="fld"><span>Día límite de pago</span><input id="tPago" inputmode="numeric" placeholder="Ej. 5" autocomplete="off"></label>
+        <label class="fld"><span>Fecha de tu último corte</span><input id="tCorte" type="date"></label>
+        <label class="fld"><span>Fecha límite de pago de ese corte</span><input id="tPago" type="date"></label>
       </div>
-      <p class="muted small">Los encuentras en tu estado de cuenta o en la app de tu banco. Tus compras a meses regístralas como gasto marcando los meses.</p>
+      <div class="two">
+        <label class="fld"><span>Tasa de interés anual (%)</span><input id="tTasa" inputmode="decimal" placeholder="Ej. 45" autocomplete="off"></label>
+        <label class="fld"><span>Pago mínimo de ese corte</span><input id="tMinimo" inputmode="decimal" placeholder="Lo calculo yo" autocomplete="off"></label>
+      </div>
+      <p class="muted small">Todo viene en tu estado de cuenta o en la app de tu banco: “fecha de corte”, “fecha límite de pago”, “tasa de interés ordinaria anual” y “pago mínimo”. Cada mes repito las fechas solas. Tus compras a meses regístralas como gasto marcando los meses.</p>
     </div>
     <div id="tMeta">
       <label class="fld"><span>¿Cuánto quieres juntar?</span><input id="tObjetivo" inputmode="decimal" autocomplete="off" placeholder="$0.00"></label>
@@ -528,6 +542,52 @@ textarea{resize:none}
     </div>
     <button class="primary" id="tGuardar" type="button">Guardar</button>
     <button class="danger" id="tEliminar" type="button" hidden>Eliminar</button>
+  </div>
+</div>
+
+<!-- Préstamos -->
+<div class="sheet" id="lsheet" hidden>
+  <div class="backdrop" data-close></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="lTitle">
+    <div class="grab"></div>
+    <div class="row-between"><h2 id="lTitle">Prestar dinero</h2><button class="link" data-close>Cerrar</button></div>
+    <div id="lNuevo">
+      <label class="fld"><span>¿A quién le prestas?</span><input id="lPersona" placeholder="Ej. Juan" autocomplete="off"></label>
+      <label class="fld"><span>¿Cuánto?</span><input id="lMonto" inputmode="decimal" placeholder="$0.00" autocomplete="off"></label>
+      <div class="fld"><span>¿De dónde sale el dinero?</span><div class="chips" id="lOrigen"></div></div>
+      <label class="fld"><span>¿Cuándo te va a pagar?</span><input id="lFechaPago" type="date"></label>
+      <label class="fld"><span>Nota (opcional)</span><input id="lNota" placeholder="Ej. para la colegiatura" autocomplete="off"></label>
+      <button class="primary" id="lGuardar" type="button">Guardar préstamo</button>
+    </div>
+    <div id="lDetalle">
+      <div class="hint" id="lResumen"></div>
+      <div id="lHist"></div>
+      <div id="lPagar">
+        <h3>Registrar un pago</h3>
+        <label class="fld"><span>¿Cuánto te pagó?</span><input id="kMonto" inputmode="decimal" autocomplete="off"></label>
+        <div class="fld"><span>¿Cómo te pagó?</span><div class="chips" id="kDestino"></div></div>
+        <label class="fld"><span>Fecha</span><input id="kFecha" type="date"></label>
+        <button class="primary" id="kGuardar" type="button">Registrar pago</button>
+        <label class="fld" style="margin-top:20px"><span>Cambiar la fecha en que te va a pagar</span><input id="lNuevaFecha" type="date"></label>
+      </div>
+      <button class="danger" id="lEliminar" type="button">Eliminar préstamo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recordatorios al Calendario -->
+<div class="sheet" id="icsheet" hidden>
+  <div class="backdrop" data-close></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="icsTitle">
+    <div class="grab"></div>
+    <div class="row-between"><h2 id="icsTitle">Recordatorios de <span id="icsNombre"></span></h2><button class="link" data-close>Cerrar</button></div>
+    <p class="muted small">Te preparé los próximos 12 pagos con aviso 2 días antes y el mismo día.</p>
+    <ol class="pasos">
+      <li>Toca <b>Compartir recordatorios</b>.</li>
+      <li>En el menú elige <b>Calendario</b>. Si no aparece, elige <b>Guardar en Archivos</b>.</li>
+      <li>Si los guardaste en Archivos, abre la app <b>Archivos</b>, toca el archivo y luego <b>Agregar todo</b>.</li>
+    </ol>
+    <button class="primary" id="icsCompartir" type="button">Compartir recordatorios</button>
   </div>
 </div>
 
@@ -651,7 +711,7 @@ textarea{resize:none}
     <section class="ostep"><div class="in">
       <div class="ilu">💳</div>
       <h2>Agrega tus tarjetas</h2>
-      <p class="sub">Así sé de dónde sale tu dinero y te aviso cuándo pagar. Puedes agregar varias.</p>
+      <p class="sub">Así sé de dónde sale tu dinero y te aviso cuándo pagar. Puedes agregar varias, incluida tu tarjeta de nómina (débito).</p>
       <div class="seg" id="oTTipo"><button type="button" data-v="debito" class="on">Débito</button><button type="button" data-v="credito">Crédito</button></div>
       <label class="fld"><span>Nombre (como la vas a decir al dictar)</span><input id="oTNombre" placeholder="Ej. BBVA, Nu" autocomplete="off"></label>
       <div id="oTDeb"><label class="fld"><span>¿Cuánto tiene hoy?</span><input id="oTSaldo" inputmode="decimal" placeholder="$0.00" autocomplete="off"></label></div>
@@ -661,9 +721,10 @@ textarea{resize:none}
           <label class="fld"><span>¿Cuánto debes hoy?</span><input id="oTDeuda" inputmode="decimal" placeholder="$0.00" autocomplete="off"></label>
         </div>
         <div class="two">
-          <label class="fld"><span>Día de corte</span><input id="oTCorte" inputmode="numeric" placeholder="Ej. 15" autocomplete="off"></label>
-          <label class="fld"><span>Día límite de pago</span><input id="oTPago" inputmode="numeric" placeholder="Ej. 5" autocomplete="off"></label>
+          <label class="fld"><span>Fecha de tu último corte</span><input id="oTCorte" type="date"></label>
+          <label class="fld"><span>Fecha límite de pago</span><input id="oTPago" type="date"></label>
         </div>
+        <label class="fld"><span>Tasa de interés anual (%) · opcional</span><input id="oTTasa" inputmode="decimal" placeholder="Ej. 45" autocomplete="off"></label>
       </div>
       <button class="btn" id="oTAgregar" type="button" style="width:100%;margin-top:12px">+ Agregar esta tarjeta</button>
       <div class="olist" id="oTLista"></div>
@@ -676,6 +737,14 @@ textarea{resize:none}
       <div class="fld"><span>¿Cada cuándo te pagan?</span><div class="seg" id="oFreq"><button type="button" data-v="quincenal" class="on">Quincena</button><button type="button" data-v="mensual">Mes</button><button type="button" data-v="semanal">Semana</button></div></div>
       <label class="fld"><span>¿Cuándo es tu próximo pago?</span><input id="oIngFecha" type="date"></label>
       <div class="fld"><span>¿A dónde te llega?</span><div class="chips" id="oIngCta"></div></div>
+      <button class="btn" id="oNomBtn" type="button" style="width:100%;margin-top:10px">+ Agregar mi tarjeta de nómina</button>
+      <div id="oNom" hidden>
+        <div class="two">
+          <label class="fld"><span>Nombre</span><input id="oNomNombre" placeholder="Ej. Nómina BBVA" autocomplete="off"></label>
+          <label class="fld"><span>¿Cuánto tiene hoy?</span><input id="oNomSaldo" inputmode="decimal" placeholder="$0.00" autocomplete="off"></label>
+        </div>
+        <button class="btn" id="oNomAgregar" type="button" style="width:100%;margin-top:10px">Agregar y usarla para mi sueldo</button>
+      </div>
     </div></section>
     <section class="ostep"><div class="in">
       <div class="ilu">🎯</div>
@@ -750,6 +819,7 @@ const CATS = {
     { id: 'ropa', n: 'Ropa', e: '👕', k: ['ropa', 'zapato', 'tenis', 'camisa', 'playera', 'pantalon', 'jeans', 'vestido', 'falda', 'sudadera', 'chamarra', 'abrigo', 'calcetin', 'calzon', 'ropa interior', 'gorra', 'bolsa', 'mochila', 'cinturon', 'shein', 'zara', 'liverpool', 'coppel', 'suburbia', 'bershka', 'pull and bear', 'nike', 'adidas', 'puma'] },
     { id: 'personal', n: 'Personal', e: '💇', k: ['corte de pelo', 'corte de cabello', 'peluqueria', 'barberia', 'estetica', 'unas', 'manicure', 'pedicure', 'perfume', 'cosmetico', 'maquillaje', 'crema', 'desodorante', 'rastrillo', 'regalo', 'cumpleanos', 'propina', 'donativo', 'limosna'] },
     { id: 'escuela', n: 'Estudios y trabajo', e: '📚', k: ['libro', 'libreta', 'cuaderno', 'curso', 'clase', 'colegiatura', 'inscripcion', 'escuela', 'universidad', 'uniforme', 'papeleria', 'impresion', 'copias', 'utiles', 'software', 'licencia', 'laptop', 'computadora', 'audifonos', 'tablet', 'ipad', 'mouse', 'teclado'] },
+    { id: 'intereses', n: 'Intereses y comisiones', e: '🏦', k: ['interes', 'intereses', 'comision', 'anualidad', 'recargo', 'penalizacion'] },
     { id: 'mascotas', n: 'Mascotas', e: '🐶', k: ['mascota', 'perro', 'perrito', 'gato', 'gatito', 'croqueta', 'veterinari', 'arena para gato', 'estetica canina', 'petco', 'mas kota'] },
     { id: 'otros', n: 'Otros', e: '📦', k: [] }
   ],
@@ -761,7 +831,7 @@ const CATS = {
   ]
 };
 // Para la regla 50/30/20: lo indispensable vs. los gustos
-const NECESIDADES = new Set(['super', 'transporte', 'servicios', 'salud', 'escuela', 'mascotas']);
+const NECESIDADES = new Set(['super', 'transporte', 'servicios', 'salud', 'escuela', 'mascotas', 'intereses']);
 const NOMBRE_DIA = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábados', 'domingos'];
 const SPECIAL = { pago: { id: 'pago', n: 'Pago de tarjeta', e: '💳' }, mover: { id: 'mover', n: 'Entre cuentas', e: '🔁' } };
 // Color fijo por categoría (sigue a la categoría, no a su lugar en el ranking); el resto va en gris
@@ -782,7 +852,7 @@ const esNecesidad = id => NECESIDADES.has(id) || !!((S.catsExtra || []).find(c =
 function blank() {
   return { v: 2, inicialEfectivo: 0, tarjetas: [], cuentaDefault: 'efectivo', ingresoMensual: 0, presupuestos: {}, movs: [],
     fijos: [], catsExtra: [], pinHash: null, listo: false, tutorialVisto: false,
-    aprende: { gasto: {}, ingreso: {} }, limiteHormiga: 0, periodo: 'mes' };
+    aprende: { gasto: {}, ingreso: {} }, limiteHormiga: 0, periodo: 'mes', planMonto: 0, planMetodo: 'avalancha', prestamos: [] };
 }
 // Versión 1 tenía una sola cuenta "banco" y tipos retiro/depósito
 function migrar(o) {
@@ -824,6 +894,9 @@ function efecto(m) {
   if (m.tipo === 'gasto') return { [m.cuenta]: -v };
   if (m.tipo === 'ingreso') return { [m.cuenta]: v };
   if (m.tipo === 'pago' || m.tipo === 'mover') return m.origen === m.destino ? {} : { [m.origen]: -v, [m.destino]: v };
+  // Un préstamo sale de tu cuenta y un cobro entra; no cuentan como gasto ni ingreso
+  if (m.tipo === 'prestamo') return { [m.origen]: -v };
+  if (m.tipo === 'cobro') return { [m.destino]: v };
   return {};
 }
 function saldos(hasta) {
@@ -879,7 +952,15 @@ function corteDeCompra(c, fecha) {
   if (isoDate(corte) < fecha) corte = fechaDia(d.getFullYear(), d.getMonth() + 1, c.diaCorte);
   return corte;
 }
-const pagoDeCorte = (c, corte) => fechaDia(corte.getFullYear(), corte.getMonth() + (c.diaPago > c.diaCorte ? 0 : 1), c.diaPago);
+// Meses entre el corte y su fecha límite de pago (si no se capturó, se deduce de los días)
+const mesesPago = c => c.pagoMeses != null ? c.pagoMeses : (c.diaPago > c.diaCorte ? 0 : 1);
+const pagoDeCorte = (c, corte) => fechaDia(corte.getFullYear(), corte.getMonth() + mesesPago(c), c.diaPago);
+// De las fechas del estado de cuenta saca el día de corte, el de pago y cuántos meses después del corte se paga
+function fechasTarjeta(corteIso, pagoIso) {
+  if (!corteIso || !pagoIso || pagoIso <= corteIso) return null;
+  const c = deIso(corteIso), p = deIso(pagoIso), meses = (p.getFullYear() - c.getFullYear()) * 12 + p.getMonth() - c.getMonth();
+  return meses > 2 ? null : { diaCorte: c.getDate(), diaPago: p.getDate(), pagoMeses: meses };
+}
 const pagoDeCompra = (c, fecha) => pagoDeCorte(c, corteDeCompra(c, fecha));
 // Parte de una compra a meses que todavía no se ha cargado a ningún corte (al corte "corteIso")
 function msiPendiente(m, c, corteIso) {
@@ -909,10 +990,20 @@ function ciclo(c, hoy) {
     const cuota = m.monto / m.msi, pend = msiPendiente(m, c, lcI);
     return { m, cuota, faltan: Math.round(pend / cuota), pend };
   }).filter(x => x.faltan > 0);
+  const msiPend = msi.reduce((a, x) => a + x.pend, 0), porPagar = r2(Math.max(0, alCorte - abonos));
+  // Pago mínimo: el del estado de cuenta si lo capturó para este corte; si no, la regla de Banxico
+  // (mensualidades MSI + el mayor entre 1.5% del saldo y 1.25% del límite, sin pasar del saldo)
+  const cuotasCorte = msi.filter(x => x.pend < x.m.monto - 0.01).reduce((a, x) => a + x.cuota, 0);
+  const rev = Math.max(0, alCorte - cuotasCorte);
+  const minCorte = c.minimoDe === lcI && c.minimo > 0 ? c.minimo : Math.min(alCorte, cuotasCorte + Math.max(rev * 0.015, Math.min(rev, (c.limite || 0) * 0.0125)));
+  const minimo = r2(Math.max(0, minCorte - abonos));
+  // Interés mensual con IVA (16%) sobre lo que quede sin pagar del corte
+  const iMes = (+c.tasa || 0) / 100 / 12 * 1.16;
   return {
-    lc, nc, pago, pagoSig, deuda, msi,
-    msiPend: msi.reduce((a, x) => a + x.pend, 0),
-    porPagar: r2(Math.max(0, alCorte - abonos)),
+    lc, nc, pago, pagoSig, deuda, msi, msiPend, porPagar, minimo, iMes,
+    minimoEstimado: !(c.minimoDe === lcI && c.minimo > 0),
+    interesSiMinimo: r2(Math.max(0, porPagar - minimo) * iMes),
+    revolvente: Math.max(0, deuda - msiPend),
     proxCorte: r2(Math.max(0, deuda - msiAl(ncI))),
     uso: c.limite > 0 ? deuda / c.limite : null,
     diasPago: diasEntre(hoy, pago), diasCorte: diasEntre(hoy, nc),
@@ -1031,6 +1122,8 @@ const R_DEP = /\b(deposite|depositar|meti (al banco|a la cuenta)|ingrese (al ban
 const R_PAGOV = /\b(pague|abone|liquide|abono|pago|cubri)\b/;
 const R_MOVER = /\b(pase|movi|traspase|transferi|mande)\b/;
 const R_AHORRO = /\b(aparte|ahorre|guarde|meti|abone)\b/;
+const R_PREST = /\b(preste|prestamos|di prestado|deje prestado)\b/;
+const R_COBRO = /\b(pago|pagaron|regreso|regresaron|devolvio|devolvieron|abono|abonaron|dio|deposito|transfirio|liquido)\b/;
 const R_MSI = /\b(?:a\s+)?(\d{1,2}|tres|seis|nueve|doce|dieciocho|veinticuatro)\s+(?:meses(?:\s+sin\s+intereses)?|msi)\b/i;
 const R_FORMA = /\s*\b(con|en|de|por|usando|desde|pagando con)?\s*(la |mi |el )?(tarjeta( de (d[eé]bito|cr[eé]dito))?|de (d[eé]bito|cr[eé]dito)|d[eé]bito|cr[eé]dito|efectivo|cash|transferencia)\b/gi;
 const R_MONEDA = /^(pesos?|varos|mxn|dolares|dlls|\$)$/;
@@ -1157,6 +1250,22 @@ function parseTexto(raw) {
     }
   }
 
+  // Préstamos: "Juan me pagó 200" (alguien que te debe) o "Le presté 500 a Juan"
+  const liquida = ment.find(m => tipoDe(m.id) === 'efectivo' || tipoDe(m.id) === 'debito');
+  const deudor = prestamosAbiertos().find(x => { const n = norm(x.p.persona).split(/\s+/).find(w => w.length >= 3) || norm(x.p.persona); return t.includes(' ' + n + ' '); });
+  if (deudor && R_COBRO.test(t)) {
+    return { tipo: 'cobro', prestamoId: deudor.p.id, persona: deudor.p.persona, monto: r2(monto), texto: original,
+      destino: liquida ? liquida.id : /transf|deposit|tarjeta|spei/.test(t) ? debDefault() : 'efectivo' };
+  }
+  if (R_PREST.test(t)) {
+    // La persona es lo que sigue a "a" / "al" hasta el monto o una palabra que ya no es nombre
+    let persona = [];
+    const ia = nw.findIndex((w, i) => (w === 'a' || w === 'al') && i > 0);
+    if (ia >= 0) for (let j = ia + 1; j < toks.length && !/\d/.test(nt[j]) && !isNumW(nw[j]) && !R_MONEDA.test(nt[j]) && !/^(para|que|con|de|del|y|en|hoy|ayer|desde|por)$/.test(nw[j]); j++) persona.push(toks[j].replace(/[.,]$/, ''));
+    persona = quitarCuentas(persona).join(' ').trim();
+    return { tipo: 'prestamo', persona: persona.charAt(0).toUpperCase() + persona.slice(1), monto: r2(monto), texto: original, origen: liquida ? liquida.id : debDefault() };
+  }
+
   // Descripción: lo que va después del monto; si no hay nada, lo de antes sin verbos
   let desc = '';
   if (tipo === 'gasto' || tipo === 'ingreso') {
@@ -1221,8 +1330,9 @@ function consejos() {
     totalPorPagar += k.porPagar;
     for (const x of k.msi) { cuotasMsi += x.cuota; mesesMsi = Math.max(mesesMsi, x.faltan); }
     if (k.porPagar > 0.5) {
-      if (k.diasPago < 0) out.push({ n: 'urgente', e: '⛔', t: `Pago vencido de ${c.nombre}`, d: `Debías pagar ${money(k.porPagar)} a más tardar el ${fCorta(k.pago)}. Págalo cuanto antes para frenar intereses y no dañar tu historial en Buró.`, pagar: c.id });
-      else if (k.diasPago <= 5) out.push({ n: 'urgente', e: '⏰', t: `Paga ${money(k.porPagar)} de ${c.nombre} ${cuando(k.diasPago)}`, d: `Es lo que necesitas para no generar intereses. Fecha límite: ${fCorta(k.pago)}.`, pagar: c.id });
+      const intereses = k.iMes ? ` Si no lo cubres, te cobrarán ≈ ${money(k.porPagar * k.iMes)} de intereses.` : '';
+      if (k.diasPago < 0) out.push({ n: 'urgente', e: '⛔', t: `Pago vencido de ${c.nombre}`, d: `Debías pagar ${money(k.porPagar)} a más tardar el ${fCorta(k.pago)} (mínimo ${money(k.minimo)}). Págalo cuanto antes para frenar intereses y no dañar tu historial en Buró.${intereses}`, pagar: c.id });
+      else if (k.diasPago <= 5) out.push({ n: 'urgente', e: '⏰', t: `Paga ${money(k.porPagar)} de ${c.nombre} ${cuando(k.diasPago)}`, d: `Es lo que necesitas para no generar intereses (el mínimo es ${money(k.minimo)}). Fecha límite: ${fCorta(k.pago)}.${intereses}`, pagar: c.id });
       else out.push({ n: 'aviso', e: '🗓️', t: `${c.nombre}: paga ${money(k.porPagar)} antes del ${fCorta(k.pago)}`, d: `Faltan ${k.diasPago} días. Paga el total del corte, no solo el mínimo: el mínimo te cobra intereses sobre todo lo demás.`, pagar: c.id });
     } else if (k.deuda > 0.5) {
       out.push({ n: 'bien', e: '✅', t: `${c.nombre} al corriente`, d: `Ya cubriste tu corte. Tu siguiente pago (≈ ${money(k.proxCorte)}) vence el ${fCorta(k.pagoSig)}.` });
@@ -1242,6 +1352,11 @@ function consejos() {
     else out.push({ n: 'tip', e: '🧾', t: `Pagas ${money(cuotasMsi)} al mes en meses sin intereses`, d: `Te quedan hasta ${mesesMsi} mensualidades. Antes de otra compra a meses, revisa que la suma no pase del 20% de tu ingreso.` });
   }
   for (const c of liquidas()) if ((s[c.id] || 0) < -0.5) out.push({ n: 'aviso', e: '🔍', t: `${c.nombre} quedó en negativo`, d: 'Quizá falta registrar un ingreso, o ajusta el saldo para que cuadre con tu banco.', ajustar: c.id });
+
+  for (const { p, e } of prestamosAbiertos()) {
+    if (e.vencido) out.push({ n: 'aviso', e: '🤝', t: `${p.persona} te debe ${money(e.falta)}`, d: `Quedó de pagarte el ${fCorta(deIso(p.fechaPago))}. Recuérdale, y cuando te pague regístralo aquí.`, cobrar: p.id });
+    else if (e.dias !== null && e.dias <= 2) out.push({ n: 'aviso', e: '🤝', t: `${p.persona} te paga ${cuando(e.dias)}: ${money(e.falta)}`, d: 'Para que no se te olvide cobrar.', cobrar: p.id });
+  }
 
   const pend = pendientes();
   if (pend.length) out.push({ n: 'aviso', e: '🔁', t: pend.length === 1 ? `Falta registrar: ${nombreFijo(pend[0].f)}` : `Tienes ${pend.length} pagos fijos sin registrar`, d: 'Confírmalos para que tus saldos estén al día.', ir: 'lista' });
@@ -1291,11 +1406,65 @@ function consejos() {
   const orden = { urgente: 0, aviso: 1, tip: 2, bien: 3 };
   return out.sort((a, b) => orden[a.n] - orden[b.n]);
 }
+// ---------- Plan para liquidar tarjetas ----------
+// Mínimo de un mes: 1.5% del saldo + intereses, o 1.25% del límite (lo mayor), sin pasar del saldo
+const minimoMes = (t, interes) => Math.min(t.saldo, Math.max((t.saldo - interes) * 0.015 + interes, (t.c.limite || 0) * 0.0125, 50));
+// Simula mes a mes: se cobran intereses, se pagan los mínimos y lo que sobra va a la tarjeta prioritaria
+function simularPlan(mensual, metodo, soloMinimos) {
+  const ts = creditos().map(c => { const k = ciclo(c); return { c, saldo: k.revolvente, i: k.iMes, fin: 0 }; }).filter(t => t.saldo > 0.5);
+  let mes = 0, interes = 0;
+  while (ts.some(t => t.saldo > 0.5) && mes < 600) {
+    mes++;
+    const vivas = ts.filter(t => t.saldo > 0.5), pagos = new Map();
+    for (const t of vivas) { const x = t.saldo * t.i; t.saldo += x; interes += x; pagos.set(t, minimoMes(t, x)); }
+    const sumMin = [...pagos.values()].reduce((a, b) => a + b, 0);
+    if (!soloMinimos && sumMin > mensual + 0.5) return { noAlcanza: true, minimos: sumMin };
+    let extra = soloMinimos ? 0 : mensual - sumMin;
+    for (const [t, p] of pagos) t.saldo -= p;
+    const orden = vivas.slice().sort(metodo === 'bola' ? (a, b) => a.saldo - b.saldo : (a, b) => b.i - a.i || a.saldo - b.saldo);
+    for (const t of orden) { const p = Math.min(extra, t.saldo); t.saldo -= p; extra -= p; }
+    for (const t of vivas) if (t.saldo <= 0.5 && !t.fin) t.fin = mes;
+  }
+  return { meses: mes, interes, tarjetas: ts, sinFin: mes >= 600 };
+}
+const enMeses = n => { const d = new Date(); d.setMonth(d.getMonth() + n); return d.toLocaleDateString('es-MX', { month: 'short', year: 'numeric' }).replace('.', ''); };
+const textoMeses = n => n < 24 ? `${n} ${n === 1 ? 'mes' : 'meses'}` : `${(n / 12).toFixed(1)} años`;
+function planHtml() {
+  const cs = creditos().filter(c => ciclo(c).revolvente > 0.5);
+  if (!cs.length) return '';
+  const metodo = S.planMetodo || 'avalancha';
+  const minHoy = cs.reduce((a, c) => a + Math.max(ciclo(c).minimo, minimoMes({ c, saldo: ciclo(c).revolvente }, ciclo(c).revolvente * ciclo(c).iMes)), 0);
+  const mensual = +S.planMonto || Math.ceil(minHoy * 2 / 100) * 100;
+  let h = `<div class="sec-title"><span>💳 Plan para liquidar tus tarjetas</span></div><div class="card">
+    <label class="plan-in"><span>¿Cuánto puedes pagar al mes entre todas tus tarjetas?</span><input id="planMonto" inputmode="decimal" value="${Math.round(mensual)}" autocomplete="off"></label>
+    <div class="seg" id="planMet"><button type="button" data-v="avalancha" class="${metodo === 'avalancha' ? 'on' : ''}">Pagar menos intereses</button><button type="button" data-v="bola" class="${metodo === 'bola' ? 'on' : ''}">Bola de nieve</button></div>
+    <p class="muted small" style="margin:8px 0 0">${metodo === 'bola'
+      ? 'Bola de nieve: pagas el mínimo en todas y lo que sobra va a la deuda más chica. Liquidas tarjetas más rápido y eso motiva.'
+      : 'Pagar menos intereses: pagas el mínimo en todas y lo que sobra va a la tarjeta con la tasa más alta. Es lo que menos dinero te cuesta.'}</p>`;
+  const r = simularPlan(mensual, metodo);
+  if (r.noAlcanza) {
+    h += `<p class="hor-tip">⚠️ Con ${money(mensual)} no alcanza ni para los mínimos (${money(r.minimos)}). Sube el monto o recorta gastos mientras tanto.</p></div>`;
+    return h;
+  }
+  const base = simularPlan(0, metodo, true);
+  h += `<div class="plan-big">${r.sinFin ? 'Con este monto la deuda casi no baja' : `Libre de deudas en <b>${textoMeses(r.meses)}</b> <span class="muted small">(${enMeses(r.meses)})</span>`}</div>
+    <div class="muted small">Pagarías ≈ ${money(r.interes)} de intereses en total.</div>
+    <div class="hor-sub">Orden de pago</div>` +
+    r.tarjetas.slice().sort((a, b) => a.fin - b.fin).map((t, i) => `<div class="hor-item"><span>${i + 1}. ${esc(t.c.nombre)} <span class="muted small">${money(ciclo(t.c).revolvente)}${t.c.tasa ? ' al ' + t.c.tasa + '%' : ' · sin tasa'}</span></span><b>${t.fin ? enMeses(t.fin) : '—'}</b></div>`).join('');
+  if (!base.sinFin && base.interes > r.interes + 1) h += `<p class="hor-tip">💡 Si solo pagaras los mínimos tardarías ${textoMeses(base.meses)} y pagarías ≈ ${money(base.interes)} de intereses. Con este plan te ahorras <b>${money(base.interes - r.interes)}</b>.</p>`;
+  else if (base.sinFin) h += `<p class="hor-tip">💡 Pagando solo los mínimos tardarías más de 50 años. Con este plan te ahorras muchísimo en intereses.</p>`;
+  const sinTasa = cs.filter(c => !c.tasa);
+  if (sinTasa.length) h += `<p class="muted small" style="margin:8px 0 0">Agrega la tasa de interés de ${sinTasa.map(c => esc(c.nombre)).join(', ')} (en Cuentas) para que el cálculo sea exacto.</p>`;
+  const cuotas = cs.reduce((a, c) => a + ciclo(c).msi.reduce((x, m) => x + m.cuota, 0), 0);
+  if (cuotas) h += `<p class="muted small" style="margin:8px 0 0">Aparte siguen tus meses sin intereses: ${money(cuotas)} al mes (no generan intereses).</p>`;
+  return h + '</div>';
+}
 function alertaHtml(a) {
   let act = '';
   if (a.pagar) act = `<button class="act" data-pagar="${esc(a.pagar)}">Registrar pago</button>`;
   else if (a.apartar) act = `<button class="act" data-apartar="${esc(a.apartar)}">Apartar dinero</button>`;
   else if (a.ajustar) act = `<button class="act" data-ajustar="${esc(a.ajustar)}">Ajustar saldo</button>`;
+  else if (a.cobrar) act = `<button class="act" data-cobrar="${esc(a.cobrar)}">Registrar que me pagó</button>`;
   else if (a.ir) act = `<button class="act" data-ir="${esc(a.ir)}">Ir</button>`;
   return `<div class="alerta ${a.n}"><div class="e">${a.e}</div><div><div class="tt">${esc(a.t)}</div><div class="dd">${esc(a.d)}</div>${act}</div></div>`;
 }
@@ -1312,6 +1481,8 @@ function render() {
   const partes = [];
   if (creditos().length) partes.push(`Debes en tarjetas ${money(deuda)} · Libre real ${money(disp - deuda)}`);
   if (metas().length) partes.push(`Apartado en metas ${money(ahorro)}`);
+  const teDeben = prestamosAbiertos().reduce((a, x) => a + x.e.falta, 0);
+  if (teDeben > 0.5) partes.push(`Te deben ${money(teDeben)}`);
   $('#heroDeuda').hidden = !partes.length;
   $('#heroDeuda').innerHTML = partes.map(esc).join('<br>');
   $('#accts').innerHTML = cuentas().map(c => {
@@ -1352,6 +1523,8 @@ function diaLabel(f) {
 }
 function etiqueta(m) {
   if (m.tipo === 'pago') return { n: 'Pago a ' + cuenta(m.destino).nombre, e: '💳' };
+  if (m.tipo === 'prestamo') return { n: 'Préstamo a ' + (m.persona || 'alguien'), e: '🤝' };
+  if (m.tipo === 'cobro') return { n: (m.persona || 'Alguien') + ' te pagó', e: '💸' };
   if (m.tipo === 'mover') {
     if (cuenta(m.destino).tipo === 'meta') return { n: 'Ahorro: ' + cuenta(m.destino).nombre, e: '🎯' };
     if (cuenta(m.origen).tipo === 'meta') return { n: 'Sacado de ' + cuenta(m.origen).nombre, e: '🎯' };
@@ -1367,6 +1540,8 @@ function rowHtml(m) {
   let cls, txt, sub;
   if (m.tipo === 'gasto') { cls = 'neg'; txt = '−' + money(m.monto); sub = et.n + ' · ' + cuenta(m.cuenta).nombre + (esHormiga(m) ? ' · 🐜' : ''); }
   else if (m.tipo === 'ingreso') { cls = 'pos'; txt = '+' + money(m.monto); sub = et.n + ' · ' + cuenta(m.cuenta).nombre; }
+  else if (m.tipo === 'prestamo') { cls = 'swap'; txt = money(m.monto); sub = cuenta(m.origen).nombre + ' → ' + m.persona; }
+  else if (m.tipo === 'cobro') { cls = 'pos'; txt = '+' + money(m.monto); sub = m.persona + ' → ' + cuenta(m.destino).nombre; }
   else { cls = 'swap'; txt = money(m.monto); sub = cuenta(m.origen).nombre + ' → ' + cuenta(m.destino).nombre; }
   const extra = m.msi > 1 ? `<small>${m.msi} MSI de ${money(m.monto / m.msi)}</small>` : '';
   return `<button class="row" data-id="${esc(m.id)}"><div class="ico">${et.e}</div><div class="txt"><div class="t1">${esc(m.desc || et.n)}</div><div class="t2">${esc(sub)}</div></div><div class="amt ${cls}">${txt}${extra}</div></button>`;
@@ -1377,7 +1552,7 @@ function coincide(m) {
   else if (filtro === 'otros' && (m.tipo === 'gasto' || m.tipo === 'ingreso')) return false;
   if (!busqueda) return true;
   const hay = norm([m.desc, etiqueta(m).n, m.cuenta && cuenta(m.cuenta).nombre, m.origen && cuenta(m.origen).nombre,
-    m.destino && cuenta(m.destino).nombre, m.texto, m.monto].filter(Boolean).join(' '));
+    m.destino && cuenta(m.destino).nombre, m.persona, m.texto, m.monto].filter(Boolean).join(' '));
   return norm(busqueda).split(/\s+/).filter(Boolean).every(w => hay.includes(w));
 }
 function renderLista() {
@@ -1537,6 +1712,9 @@ function renderCuentas() {
       </button>
       <div class="tinfo">
         <div class="r"><span>Para no pagar intereses</span>${estado}</div>
+        ${k.porPagar > 0.5 ? `<div class="r"><span>Pago mínimo${k.minimoEstimado ? ' (estimado)' : ''}</span><b>${money(k.minimo)}</b></div>` : ''}
+        ${k.iMes && k.porPagar > 0.5 ? `<div class="r"><span>Si solo pagas el mínimo</span><b class="neg">≈ ${money(k.interesSiMinimo)} de intereses</b></div>` : ''}
+        <div class="r"><span>Tasa de interés</span>${c.tasa ? `<b>${c.tasa}% anual · ${(k.iMes * 100).toFixed(1)}% al mes con IVA</b>` : '<b class="muted">Agrégala para calcular intereses</b>'}</div>
         <div class="r"><span>Fecha límite de pago</span><b>${fCorta(k.porPagar > 0.5 || k.diasPago >= 0 ? k.pago : k.pagoSig)}</b></div>
         <div class="r"><span>Próximo corte</span><b>${fCorta(k.nc)} (${cuando(k.diasCorte)})</b></div>
         <div class="r"><span>Tu próximo pago será de</span><b>≈ ${money(k.proxCorte)}</b></div>
@@ -1563,6 +1741,12 @@ function renderCuentas() {
       <div class="tact"><button class="go" data-apartar="${esc(c.id)}">Apartar dinero</button><button data-sacar="${esc(c.id)}">Sacar</button></div></div>`;
   }
   html += '<button class="addcard" id="addCard">+ Agregar tarjeta o meta</button>';
+
+  html += '<div class="sec-title"><span>🤝 Te deben</span><button type="button" id="addPrestamo">+ Prestar</button></div>';
+  const abiertos = prestamosAbiertos();
+  if (!abiertos.length) html += `<div class="alerta"><div class="e">🤝</div><div><div class="tt">¿Prestaste dinero?</div><div class="dd">Anótalo con la fecha en que te van a pagar y te aviso para que no se te olvide cobrar. Por voz: “Le presté 500 a Juan”.</div></div></div>`;
+  else html += '<div class="group">' + abiertos.sort((a, b) => (a.p.fechaPago || '9') < (b.p.fechaPago || '9') ? -1 : 1).map(({ p, e }) =>
+    `<button class="row" data-prestamo="${esc(p.id)}"><div class="ico">🤝</div><div class="txt"><div class="t1">${esc(p.persona)}</div><div class="t2 ${e.vencido ? 'neg' : ''}">${!p.fechaPago ? 'Sin fecha de pago' : e.vencido ? 'Vencido desde el ' + fCorta(deIso(p.fechaPago)) : 'Paga ' + cuando(e.dias) + ' · ' + fCorta(deIso(p.fechaPago))}</div></div><div class="amt">${money(e.falta)}</div></button>`).join('') + '</div>';
 
   html += '<div class="sec-title"><span>Pagos fijos</span></div>';
   if (!S.fijos.length) html += `<div class="alerta"><div class="e">🔁</div><div><div class="tt">Renta, Netflix, sueldo…</div><div class="dd">Al guardar un movimiento elige “¿Se repite?” y aparecerá aquí. Te recuerdo cuando toque y lo registras con un toque.</div></div></div>`;
@@ -1592,6 +1776,8 @@ function renderConsejos(cs) {
       `<p class="muted small" style="margin:8px 0 0">Después de tus pagos fijos te quedarían libres ≈ <b>${money(disponible(s) - fr.sale + fr.entra)}</b> ${porPago() ? 'hasta tu próximo pago' : 'para el resto del mes'}.</p></div>`;
   }
 
+  html += planHtml();
+
   html += `<div class="sec-title"><span>Regla 50 / 30 / 20 ${este}</span></div><div class="card">`;
   if (base > 0) {
     let nec = 0, gus = 0;
@@ -1600,7 +1786,7 @@ function renderConsejos(cs) {
     const fila = (e, n, v, meta, inv) => {
       const p = v / base * 100, mal = inv ? p < meta : p > meta;
       return `<div class="bar-row"><div class="top"><span>${e} ${n} <span class="muted small">meta ${inv ? 'mín.' : 'máx.'} ${meta}%</span></span><b class="${mal ? (inv ? 'warn' : 'neg') : 'pos'}">${Math.round(p)}%</b></div>
-        <div class="track"><div class="fill ${mal ? (inv ? 'warn' : 'neg') : ''}" style="width:${Math.max(0, Math.min(100, p))}%"></div><div class="meta" style="left:${meta}%"></div></div>
+        <div class="track"><div class="fill ${mal ? (inv ? 'warn' : 'neg') : ''}" style="width:${Math.max(0, Math.min(100, p))}%"></div><div class="marca" style="left:${meta}%"></div></div>
         <div class="muted small" style="margin-top:4px">${money(v)} de ${money(base * meta / 100)}</div></div>`;
     };
     html += fila('🏠', 'Necesidades', nec, 50) + fila('🎉', 'Gustos', gus, 30) + fila('🐷', 'Sin gastar (ahorro)', Math.max(0, ah), 20, true);
@@ -1615,7 +1801,7 @@ function renderConsejos(cs) {
   if (prom > 0) {
     const libre = disponible(s) + enMetas(s) - deudaTotal(s), meses = Math.max(0, libre / prom);
     html += `<div class="bar-row"><div class="top"><span>Tu dinero (con metas, sin deudas) cubre</span><b class="${meses >= 3 ? 'pos' : 'warn'}">${meses.toFixed(1)} meses</b></div>
-      <div class="track"><div class="fill ${meses >= 3 ? '' : 'warn'}" style="width:${Math.min(100, meses / 6 * 100)}%"></div><div class="meta" style="left:50%"></div></div></div>
+      <div class="track"><div class="fill ${meses >= 3 ? '' : 'warn'}" style="width:${Math.min(100, meses / 6 * 100)}%"></div><div class="marca" style="left:50%"></div></div></div>
       <p class="muted small" style="margin:6px 0 0">Gastas unos ${money(prom)} al mes. Lo recomendable es tener de 3 a 6 meses guardados (${money(prom * 3)} a ${money(prom * 6)}) por si te quedas sin ingreso o surge algo.</p>`;
   } else html += '<p class="muted small" style="margin:0">Cuando registres algunos gastos te digo cuántos meses aguantarías con tu dinero.</p>';
   html += '</div>';
@@ -1760,6 +1946,7 @@ function interpretar() {
   syncForm();
   if (!F.texto.trim()) return;
   const p = parseTexto(F.texto);
+  if (p.tipo === 'prestamo' || p.tipo === 'cobro') { hide('#sheet'); setTimeout(() => abrirParseado(p), 250); return; }
   Object.assign(F, p, { id: F.id, ts: F.ts, monto: p.monto || F.monto, fijoRef: F.fijoRef, rep: F.rep, hormiga: p.hormiga || F.hormiga === true, catSug: p.categoria });
   paintSheet();
 }
@@ -1859,8 +2046,11 @@ function openTarjeta(id, tipo) {
   $('#tDeuda').value = c && c.tipo === 'credito' ? r2(Math.max(0, -(s[c.id] || 0)) - ciclo(c).msiPend) : '';
   T.corteAntes = c && c.tipo === 'credito' ? String(ciclo(c).porPagar) : '';
   $('#tCorteIni').value = T.corteAntes;
-  $('#tCorte').value = c && c.diaCorte ? c.diaCorte : '';
-  $('#tPago').value = c && c.diaPago ? c.diaPago : '';
+  const k = c && c.tipo === 'credito' ? ciclo(c) : null;
+  $('#tCorte').value = k ? isoDate(k.lc) : '';
+  $('#tPago').value = k ? isoDate(k.pago) : '';
+  $('#tTasa').value = c && c.tasa ? c.tasa : '';
+  $('#tMinimo').value = k && !k.minimoEstimado ? c.minimo : '';
   $('#tObjetivo').value = c && c.objetivo ? c.objetivo : '';
   $('#tFechaMeta').value = c && c.fechaMeta ? c.fechaMeta : '';
   $('#tAhorrado').value = c && c.tipo === 'meta' ? r2(Math.max(0, s[c.id] || 0)) : '';
@@ -1878,10 +2068,8 @@ function guardarTarjeta() {
   if (norm(nombre) === 'efectivo') { toast('Usa otro nombre'); return; }
   let c = T.id ? S.tarjetas.find(x => x.id === T.id) : null;
   const nueva = !c;
-  if (T.tipo === 'credito') {
-    const dc = parseInt($('#tCorte').value, 10), dp = parseInt($('#tPago').value, 10);
-    if (!(dc >= 1 && dc <= 31) || !(dp >= 1 && dp <= 31)) { toast('Pon el día de corte y de pago (1 a 31)'); return; }
-  }
+  const fechas = T.tipo === 'credito' ? fechasTarjeta($('#tCorte').value, $('#tPago').value) : null;
+  if (T.tipo === 'credito' && !fechas) { toast('Pon la fecha de tu último corte y la fecha límite de pago (después del corte)'); return; }
   if (nueva) { c = { id: uid(), alta: isoDate(new Date()), inicial: 0 }; S.tarjetas.push(c); }
   c.nombre = nombre; c.tipo = T.tipo;
   const actual = saldos()[c.id] || 0;
@@ -1896,7 +2084,10 @@ function guardarTarjeta() {
     const deuda = numDe($('#tDeuda').value) + (nueva ? 0 : ciclo(c).msiPend);
     c.inicial = r2((+c.inicial || 0) - deuda - actual);
     c.limite = numDe($('#tLimite').value) || 0;
-    c.diaCorte = parseInt($('#tCorte').value, 10); c.diaPago = parseInt($('#tPago').value, 10);
+    Object.assign(c, fechas);
+    c.tasa = numDe($('#tTasa').value) || 0;
+    c.minimo = numDe($('#tMinimo').value) || 0;
+    c.minimoDe = c.minimo ? $('#tCorte').value : '';
     const ci = $('#tCorteIni').value.trim();
     if (nueva) c.corteInicial = ci === '' ? deuda : Math.min(deuda, numDe(ci));
     else if (ci !== T.corteAntes) {
@@ -1936,13 +2127,90 @@ function recordatorios(id) {
       'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + tx(`Hoy vence el pago de ${c.nombre}`), 'TRIGGER:PT9H', 'END:VALARM', 'END:VEVENT');
   }
   L.push('END:VCALENDAR');
-  const url = URL.createObjectURL(new Blob([L.join('\r\n')], { type: 'text/calendar' }));
-  const a = document.createElement('a');
-  a.href = url; a.target = '_blank'; a.rel = 'noopener';
-  if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) a.download = `pagos-${norm(c.nombre).replace(/[^a-z0-9]+/g, '-')}.ics`;
+  const nombre = `pagos-${norm(c.nombre).replace(/[^a-z0-9]+/g, '-')}.ics`;
+  // En la app instalada del iPhone abrir el archivo en otra pestaña la deja en blanco: se manda por el menú de Compartir
+  const file = new File([L.join('\r\n')], nombre, { type: 'text/calendar' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    $('#icsNombre').textContent = c.nombre;
+    show('#icsheet');
+    $('#icsCompartir').onclick = () => { navigator.share({ files: [file], title: `Pagos de ${c.nombre}` }).catch(() => {}); };
+    return;
+  }
+  const url = URL.createObjectURL(file), a = document.createElement('a');
+  a.href = url; a.download = nombre;
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 60000);
-  toast('Elige “Agregar todo” para guardarlos en tu Calendario');
+  toast('Abre el archivo descargado y elige “Agregar todo” para guardarlos en tu Calendario');
+}
+
+// ---------- Préstamos: dinero que prestaste y te tienen que regresar ----------
+function estadoPrestamo(p) {
+  let prestado = 0, cobrado = 0;
+  for (const m of S.movs) if (m.prestamoId === p.id) { if (m.tipo === 'prestamo') prestado += m.monto; else if (m.tipo === 'cobro') cobrado += m.monto; }
+  const falta = r2(Math.max(0, prestado - cobrado)), dias = p.fechaPago ? diasEntre(new Date(), deIso(p.fechaPago)) : null;
+  return { prestado, cobrado, falta, dias, vencido: falta > 0.5 && dias !== null && dias < 0 };
+}
+const prestamosAbiertos = () => (S.prestamos || []).map(p => ({ p, e: estadoPrestamo(p) })).filter(x => x.e.falta > 0.5);
+// Lo dictado puede ser un movimiento normal, un préstamo o el pago de alguien que te debe
+function abrirParseado(p, focus) {
+  if (p.tipo === 'prestamo') openPrestamoNuevo(p);
+  else if (p.tipo === 'cobro') openPrestamo(p.prestamoId, p);
+  else openSheet(p, focus);
+}
+let L = null;
+function openPrestamoNuevo(d) {
+  d = d || {};
+  L = { id: null, texto: d.texto || '', origen: liquidas().some(c => c.id === d.origen) ? d.origen : debDefault() };
+  $('#lTitle').textContent = 'Prestar dinero';
+  $('#lNuevo').hidden = false; $('#lDetalle').hidden = true;
+  $('#lPersona').value = d.persona || '';
+  $('#lMonto').value = d.monto || '';
+  $('#lNota').value = '';
+  $('#lFechaPago').value = masDias(hoyIso(), 15);
+  chipsCuentas('#lOrigen', liquidas(), L.origen);
+  show('#lsheet');
+}
+function guardarPrestamo() {
+  const persona = $('#lPersona').value.trim(), v = numDe($('#lMonto').value);
+  if (!persona) { toast('¿A quién le prestaste?'); $('#lPersona').focus(); return; }
+  if (!(v > 0)) { toast('Falta el monto'); $('#lMonto').focus(); return; }
+  const p = { id: uid(), persona, fechaPago: $('#lFechaPago').value || '', nota: $('#lNota').value.trim() };
+  S.prestamos.push(p);
+  S.movs.push({ id: uid(), ts: Date.now(), tipo: 'prestamo', monto: r2(v), origen: L.origen, persona, prestamoId: p.id, categoria: 'prestamo', desc: p.nota, fecha: hoyIso(), texto: L.texto });
+  save(); hide('#lsheet'); render();
+  toast(`Préstamo a ${persona} guardado${p.fechaPago ? ' · te aviso el ' + fCorta(deIso(p.fechaPago)) : ''}`);
+}
+function openPrestamo(id, pre) {
+  const p = S.prestamos.find(x => x.id === id); if (!p) return;
+  const e = estadoPrestamo(p);
+  L = { id, texto: pre && pre.texto || '', destino: pre && liquidas().some(c => c.id === pre.destino) ? pre.destino : 'efectivo' };
+  $('#lTitle').textContent = p.persona;
+  $('#lNuevo').hidden = true; $('#lDetalle').hidden = false;
+  const cuando_ = !p.fechaPago ? '' : e.vencido ? ` · <span class="neg">vencido desde el ${fCorta(deIso(p.fechaPago))}</span>` : ` · paga ${cuando(e.dias)} (${fCorta(deIso(p.fechaPago))})`;
+  $('#lResumen').innerHTML = e.falta > 0.5
+    ? `${esc(p.persona)} te debe <b>${money(e.falta)}</b> de ${money(e.prestado)}${cuando_}${p.nota ? '<br>' + esc(p.nota) : ''}`
+    : `✅ ${esc(p.persona)} ya te pagó todo (${money(e.prestado)}).`;
+  $('#lHist').innerHTML = '<div class="group" style="margin-top:12px">' + S.movs.filter(m => m.prestamoId === id).sort((a, b) => a.fecha < b.fecha ? -1 : 1).map(rowHtml).join('') + '</div>';
+  $('#lPagar').hidden = e.falta <= 0.5;
+  $('#kMonto').value = pre && pre.monto ? pre.monto : e.falta;
+  $('#kFecha').value = hoyIso();
+  chipsCuentas('#kDestino', liquidas(), L.destino);
+  $('#lNuevaFecha').value = p.fechaPago || '';
+  show('#lsheet');
+}
+function guardarCobro() {
+  const p = S.prestamos.find(x => x.id === L.id); if (!p) return;
+  const falta = estadoPrestamo(p).falta, v = numDe($('#kMonto').value);
+  if (!(v > 0)) { toast('Falta el monto'); $('#kMonto').focus(); return; }
+  S.movs.push({ id: uid(), ts: Date.now(), tipo: 'cobro', monto: r2(v), destino: L.destino, persona: p.persona, prestamoId: p.id, categoria: 'cobro', desc: '', fecha: $('#kFecha').value || hoyIso(), texto: L.texto });
+  save(); hide('#lsheet'); render();
+  toast(falta - v > 0.5 ? `${p.persona} te pagó ${money(v)} · aún te debe ${money(falta - v)}` : `¡${p.persona} ya te pagó todo! 🎉`);
+}
+function eliminarPrestamo() {
+  if (!confirm('¿Eliminar este préstamo y sus pagos? Tus saldos se recalculan como si no hubiera pasado.')) return;
+  S.movs = S.movs.filter(m => m.prestamoId !== L.id);
+  S.prestamos = S.prestamos.filter(p => p.id !== L.id);
+  save(); hide('#lsheet'); render(); toast('Préstamo eliminado');
 }
 
 // ---------- Presupuestos ----------
@@ -2065,9 +2333,11 @@ function exportarCsv() {
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   const filas = [['Fecha', 'Tipo', 'Monto', 'Cuenta', 'Hacia', 'Categoría', 'Meses sin intereses', 'Descripción', 'Lo que dijiste']];
   for (const m of ordenados()) {
-    const dos = m.tipo === 'pago' || m.tipo === 'mover';
-    filas.push([m.fecha, etiqueta(m).n, m.tipo === 'gasto' ? -m.monto : m.monto, cuenta(dos ? m.origen : m.cuenta).nombre,
-      dos ? cuenta(m.destino).nombre : '', dos ? '' : catInfo(m.categoria).n, m.msi || '', m.desc, m.texto]);
+    const dos = m.tipo === 'pago' || m.tipo === 'mover', prest = m.tipo === 'prestamo' || m.tipo === 'cobro';
+    const de = prest ? (m.tipo === 'prestamo' ? cuenta(m.origen).nombre : m.persona) : cuenta(dos ? m.origen : m.cuenta).nombre;
+    const hacia = prest ? (m.tipo === 'prestamo' ? m.persona : cuenta(m.destino).nombre) : dos ? cuenta(m.destino).nombre : '';
+    filas.push([m.fecha, etiqueta(m).n, m.tipo === 'gasto' || m.tipo === 'prestamo' ? -m.monto : m.monto, de,
+      hacia, dos || prest ? '' : catInfo(m.categoria).n, m.msi || '', m.desc, m.texto]);
   }
   descargar(`mis-gastos-${isoDate(new Date())}.csv`, '﻿' + filas.map(f => f.map(q).join(',')).join('\r\n'), 'text/csv');
 }
@@ -2115,7 +2385,7 @@ function dictar() {
   };
   rec.onend = () => {
     escuchando = false; hide('#escucha');
-    if (oido) openSheet(parseTexto(oido));
+    if (oido) abrirParseado(parseTexto(oido));
   };
   $('#live').textContent = 'Escuchando…';
   try { rec.start(); } catch (e) { openSheet({}, true); return; }
@@ -2263,6 +2533,20 @@ function resConsejo() {
   if (!cs.length) return { html: '¡Vas muy bien! 🎉 Un buen siguiente paso: aparta cada quincena un poquito para tu fondo de emergencias.', acc: [['Ver Consejos', 'consejos']] };
   return { html: 'Esto es lo que yo haría:' + lista(cs.map(a => `${a.e} <b>${esc(a.t)}</b>. ${esc(a.d)}`)), acc: [['Ver todos los consejos', 'consejos']] };
 }
+function resPrestamos() {
+  const ab = prestamosAbiertos();
+  if (!ab.length) return { html: 'Nadie te debe nada ahorita 👍. Cuando prestes dinero dime “Le presté 500 a Juan” y pon la fecha en que te va a pagar: te aviso para que no se te olvide cobrar. Cuando te pague, dime “Juan me pagó 500” y te pregunto si fue en efectivo o a qué tarjeta.', acc: [['Prestar dinero', 'prestar']] };
+  return { html: 'Te deben:' + lista(ab.map(({ p, e }) => `<b>${esc(p.persona)}</b>: ${money(e.falta)}${p.fechaPago ? (e.vencido ? ' · <span class="neg">vencido</span>' : ' · paga ' + cuando(e.dias)) : ''}`)) +
+    `En total: <b>${money(ab.reduce((a, x) => a + x.e.falta, 0))}</b>. Cuando te paguen, dime “Juan me pagó 500”.`, acc: [['Ver en Cuentas', 'cuentas']] };
+}
+function resPlan() {
+  const cs = creditos().filter(c => ciclo(c).revolvente > 0.5);
+  if (!cs.length) return { html: 'No tienes deuda de tarjetas que genere intereses 🙌. Sigue pagando el total de cada corte.' };
+  const metodo = S.planMetodo || 'avalancha', minHoy = cs.reduce((a, c) => a + ciclo(c).minimo, 0);
+  const mensual = +S.planMonto || Math.ceil(minHoy * 2 / 100) * 100, r = simularPlan(mensual, metodo);
+  if (r.noAlcanza) return { html: `Con ${money(mensual)} al mes no alcanza ni para los mínimos (${money(r.minimos)}). En Consejos ajusta cuánto puedes pagar y te armo el plan.`, acc: [['Ver mi plan', 'consejos']] };
+  return { html: `Pagando <b>${money(mensual)} al mes</b> ${metodo === 'bola' ? 'empezando por la deuda más chica' : 'empezando por la tasa más alta'}, terminarías en <b>${textoMeses(r.meses)}</b> (${enMeses(r.meses)}) y pagarías ≈ ${money(r.interes)} de intereses. En Consejos puedes cambiar el monto y el método.`, acc: [['Ver mi plan', 'consejos']] };
+}
 function resHormiga() {
   const P = periodoHoy(), H = datosHormiga(P), M = datosPeriodo(P), este = mayus(estePeriodo());
   const que = 'Los <b>gastos hormiga</b> son compras chiquitas que haces seguido sin pensar: papitas, refrescos, cafés, la tiendita… Solas no se notan, pero juntas sí. Para contarlas marca la casilla 🐜 al registrar o di “gasto hormiga” (ej. “Gasté 20 en papitas, gasto hormiga”).';
@@ -2280,6 +2564,8 @@ const MAL = [
   { k: ['microfono', 'no me escucha', 'no escucha', 'no funciona', 'permiso', 'dictado', 'hablar', 'voz'], r: r_('Si el micrófono no responde:' + lista(['En tu iPhone ve a <b>Ajustes › Safari › Micrófono</b> y elige “Permitir”.', 'Si aún no jala, toca el <b>+</b> y usa el micrófono 🎤 del teclado: escribe lo que dices y yo lo entiendo igual.']), [['Abrir para escribir', 'nuevo']]) },
   { k: ['cuanto tengo', 'que tengo', 'dinero tengo', 'cuanto dinero', 'disponible', 'saldo', 'mi dinero'], r: resDisponible },
   { k: ['debo', 'deuda', 'deudas', 'adeudo'], r: resDeuda },
+  { k: ['me debe', 'me deben', 'debe dinero', 'preste', 'prestado', 'prestamo', 'prestamos', 'cobrar', 'quien me debe'], r: resPrestamos },
+  { k: ['liquidar', 'plan de pago', 'salir de deudas', 'pagar mis tarjetas', 'terminar de pagar', 'bola de nieve', 'avalancha'], r: resPlan },
   { k: ['corte', 'fecha de pago', 'cuando pago', 'cuando tengo que pagar', 'que tengo que pagar', 'intereses', 'pago minimo', 'minimo', 'fecha limite', 'pagar la tarjeta', 'pagar mi tarjeta', 'tarjeta de credito'], r: resCorte },
   { k: ['mejor dia', 'cuando comprar', 'cuando compro', 'dia para comprar'], r: resMejorDia },
   { k: ['meses sin intereses', 'msi', 'a meses', 'mensualidad', 'mensualidades'], r: resMsi },
@@ -2321,7 +2607,7 @@ function sugerencias() {
 }
 const MAL_ACC = {
   nuevo: () => openSheet({}, true), tour: () => { view = 'lista'; render(); iniciarTour(); }, tarjeta: () => openTarjeta(null, 'credito'),
-  meta: () => openTarjeta(null, 'meta'), presup: () => openPresup(), ajustes: () => openAjustes(),
+  meta: () => openTarjeta(null, 'meta'), presup: () => openPresup(), ajustes: () => openAjustes(), prestar: () => openPrestamoNuevo(),
   consejos: () => irA('consejos'), resumen: () => irA('resumen'), cuentas: () => irA('tarjetas'),
   pagar: id => openSheet({ tipo: 'pago', destino: id })
 };
@@ -2397,7 +2683,7 @@ function abrirOnboarding() {
   document.querySelectorAll('#onb input').forEach(i => { i.value = ''; });
   $('#oIngFecha').value = proxQuincena();
   setSeg('#oTTipo', oTTipo); setSeg('#oFreq', oFreq); setSeg('#oMetaTipo', oMeta);
-  $('#oTDeb').hidden = false; $('#oTCred').hidden = true; $('#oMetaDatos').hidden = true;
+  $('#oTDeb').hidden = false; $('#oTCred').hidden = true; $('#oMetaDatos').hidden = true; $('#oNom').hidden = true;
   pintarOnbTarjetas();
   $('#onb').hidden = false; document.body.classList.add('locked');
   pintarOnb();
@@ -2435,15 +2721,15 @@ function oAgregarTarjeta() {
   const c = { id: uid(), nombre, tipo: oTTipo, alta: hoyIso() };
   if (oTTipo === 'debito') c.inicial = numDe($('#oTSaldo').value);
   else {
-    const dc = parseInt($('#oTCorte').value, 10), dp = parseInt($('#oTPago').value, 10);
-    if (!(dc >= 1 && dc <= 31) || !(dp >= 1 && dp <= 31)) { toast('Pon el día de corte y de pago (1 a 31)'); return false; }
+    const fechas = fechasTarjeta($('#oTCorte').value, $('#oTPago').value);
+    if (!fechas) { toast('Pon la fecha de tu último corte y la fecha límite de pago (después del corte)'); return false; }
     const deuda = numDe($('#oTDeuda').value);
-    Object.assign(c, { inicial: -deuda, corteInicial: deuda, limite: numDe($('#oTLimite').value) || 0, diaCorte: dc, diaPago: dp });
+    Object.assign(c, fechas, { inicial: -deuda, corteInicial: deuda, limite: numDe($('#oTLimite').value) || 0, tasa: numDe($('#oTTasa').value) || 0 });
   }
   S.tarjetas.push(c);
   if (S.cuentaDefault === 'efectivo') S.cuentaDefault = c.id;
   if (oTTipo === 'debito' && oIngCta === 'efectivo') oIngCta = c.id;
-  ['#oTNombre', '#oTSaldo', '#oTLimite', '#oTDeuda', '#oTCorte', '#oTPago'].forEach(s => { $(s).value = ''; });
+  ['#oTNombre', '#oTSaldo', '#oTLimite', '#oTDeuda', '#oTCorte', '#oTPago', '#oTTasa'].forEach(s => { $(s).value = ''; });
   pintarOnbTarjetas();
   toast(`${nombre} agregada`);
   return true;
@@ -2505,6 +2791,21 @@ $('#oTLista').onclick = e => {
   if (S.cuentaDefault === id) S.cuentaDefault = (S.tarjetas.find(c => c.tipo !== 'meta') || EFECTIVO).id;
   if (oIngCta === id) oIngCta = debDefault();
   pintarOnbTarjetas();
+};
+// Tarjeta de nómina: se da de alta aquí mismo y queda elegida para el sueldo
+$('#oNomBtn').onclick = () => { $('#oNom').hidden = false; $('#oNomBtn').hidden = true; $('#oNomNombre').focus(); };
+$('#oNomAgregar').onclick = () => {
+  const nombre = $('#oNomNombre').value.trim() || 'Nómina';
+  if (norm(nombre) === 'efectivo') { toast('Usa otro nombre'); return; }
+  const c = { id: uid(), nombre, tipo: 'debito', alta: hoyIso(), inicial: numDe($('#oNomSaldo').value) };
+  S.tarjetas.push(c);
+  if (S.cuentaDefault === 'efectivo') S.cuentaDefault = c.id;
+  oIngCta = c.id;
+  chipsCuentas('#oIngCta', liquidas(), oIngCta);
+  pintarOnbTarjetas();
+  $('#oNom').hidden = true; $('#oNomBtn').hidden = false;
+  $('#oNomNombre').value = ''; $('#oNomSaldo').value = '';
+  toast(`${nombre} agregada para tu sueldo`);
 };
 $('#oFreq').onclick = e => { const b = e.target.closest('button[data-v]'); if (b) { oFreq = b.dataset.v; setSeg('#oFreq', oFreq); } };
 $('#oIngCta').onclick = e => { const b = e.target.closest('button[data-v]'); if (b) { oIngCta = b.dataset.v; chipsCuentas('#oIngCta', liquidas(), oIngCta); } };
@@ -2585,6 +2886,8 @@ const irA = v => { view = v; render(); window.scrollTo(0, 0); };
 document.addEventListener('click', e => {
   const c = e.target.closest('[data-close]');
   if (c) { hide('#' + c.closest('.sheet').id); return; }
+  const cb = e.target.closest('[data-cobrar]');
+  if (cb) { openPrestamo(cb.dataset.cobrar); return; }
   const pg = e.target.closest('[data-pagar]');
   if (pg) { openSheet({ tipo: 'pago', destino: pg.dataset.pagar }); return; }
   const ap = e.target.closest('[data-apartar]');
@@ -2612,12 +2915,25 @@ $('#vLista').onclick = e => {
   const r = e.target.closest('[data-id]');
   if (!r) return;
   const m = S.movs.find(x => x.id === r.dataset.id);
-  if (m) openSheet(Object.assign({}, m, { msi: m.msi || 0 }));
+  if (m && m.prestamoId) openPrestamo(m.prestamoId);
+  else if (m) openSheet(Object.assign({}, m, { msi: m.msi || 0 }));
+};
+$('#lGuardar').onclick = guardarPrestamo;
+$('#kGuardar').onclick = guardarCobro;
+$('#lEliminar').onclick = eliminarPrestamo;
+$('#lOrigen').onclick = e => { const b = e.target.closest('button[data-v]'); if (b) { L.origen = b.dataset.v; chipsCuentas('#lOrigen', liquidas(), L.origen); } };
+$('#kDestino').onclick = e => { const b = e.target.closest('button[data-v]'); if (b) { L.destino = b.dataset.v; chipsCuentas('#kDestino', liquidas(), L.destino); } };
+$('#lNuevaFecha').onchange = e => {
+  const p = S.prestamos.find(x => x.id === L.id); if (!p) return;
+  p.fechaPago = e.target.value; save(); render(); toast('Fecha de pago actualizada');
 };
 let buscarT = null;
 $('#buscar').addEventListener('input', e => { clearTimeout(buscarT); buscarT = setTimeout(() => { busqueda = e.target.value.trim(); renderLista(); }, 150); });
 $('#vTarjetas').onclick = e => {
   if (e.target.closest('#addCard')) { openTarjeta(null); return; }
+  if (e.target.closest('#addPrestamo')) { openPrestamoNuevo(); return; }
+  const pr = e.target.closest('[data-prestamo]');
+  if (pr) { openPrestamo(pr.dataset.prestamo); return; }
   const cd = e.target.closest('[data-card]');
   if (cd) { openTarjeta(cd.dataset.card); return; }
   const ic = e.target.closest('[data-ics]');
@@ -2657,6 +2973,8 @@ $('#rHormiga').addEventListener('change', e => {
   S.limiteHormiga = numDe(e.target.value) || 0;
   save(); render();
 });
+$('#vConsejos').addEventListener('change', e => { if (e.target.id === 'planMonto') { S.planMonto = numDe(e.target.value) || 0; save(); render(); } });
+$('#vConsejos').addEventListener('click', e => { const b = e.target.closest('#planMet button[data-v]'); if (b) { S.planMetodo = b.dataset.v; save(); render(); } });
 $('#rHormiga').addEventListener('click', e => { if (e.target.closest('[data-verhormiga]')) { filtro = 'hormiga'; setSeg('#filtro', filtro); irA('lista'); } });
 $('#flujo').onclick = e => { const b = e.target.closest('[data-monto]'); if (b) $('#fMonto').value = b.dataset.monto; };
 $('#fFecha').onchange = () => { syncForm(); paintTipo(); };
